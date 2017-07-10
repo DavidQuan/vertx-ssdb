@@ -37,18 +37,13 @@ public class SSDBPool
 
     private Handler<AsyncResult<Void>> closeHandler;
 
-    public SSDBPool(Vertx vertx, SSDBOptions options, int poolSize)
+    public SSDBPool(Vertx vertx, SSDBOptions options)
     {
         this.vertx = vertx;
         this.options = options;
-        this.poolSize = poolSize;
+        this.poolSize = options.getPoolSize();
         this.queue = new LinkedList<>();
         this.waitQueue = new LinkedList<>();
-    }
-
-    public SSDBPool(Vertx vertx, SSDBOptions options)
-    {
-        this(vertx, options, 20);
     }
 
     public void getClient(Handler<AsyncResult<SSDBClient>> handler)

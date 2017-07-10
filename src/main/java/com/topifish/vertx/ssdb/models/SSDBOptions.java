@@ -14,6 +14,8 @@ public class SSDBOptions
 
     private int bufferSize = 4096;
 
+    private int poolSize = 20;
+
     public SSDBOptions(String host, int port, String auth)
     {
         this.host = host;
@@ -35,6 +37,17 @@ public class SSDBOptions
     {
         this.bufferSize = bufferSize;
         return this;
+    }
+
+    public SSDBOptions setPoolSize(int poolSize)
+    {
+        this.poolSize = poolSize;
+        return this;
+    }
+
+    public int getPoolSize()
+    {
+        return poolSize;
     }
 
     public String getHost()
