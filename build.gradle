@@ -1,0 +1,30 @@
+group 'com.topifish'
+version '0.1-SNAPSHOT'
+description 'Vert.x SSDB Client'
+
+apply plugin: 'java'
+
+def vertx_version = '3.4.2'
+
+tasks.withType(JavaCompile) {
+    it.sourceCompatibility = JavaVersion.VERSION_1_8 as String
+    it.targetCompatibility = JavaVersion.VERSION_1_8 as String
+    it.options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile ("io.vertx:vertx-core:${vertx_version}")
+}
+
+sourceSets.main.java {
+    srcDirs += 'src/test/java'
+}
+
+task testVerticle(type: JavaExec, dependsOn: 'classes') {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'ssdb.TestVerticle'
+}
