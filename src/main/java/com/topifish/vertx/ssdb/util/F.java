@@ -14,6 +14,8 @@ import java.util.function.Function;
  */
 public class F
 {
+    public final static Function<Void, Void> VOID_NULL = aVoid -> null;
+
     public static <T> Future<T> succeededFuture()
     {
         return Future.succeededFuture();
@@ -34,10 +36,18 @@ public class F
         return Future.failedFuture(throwable);
     }
 
-    public static <A, B> Handler<AsyncResult<A>> ofSucceeded(Handler<AsyncResult<B>> handler, VoidConsumer always, Consumer<A> consumer)
+    public static <A, B> Handler<AsyncResult<A>> ofSucceededVoid(Handler<AsyncResult<B>> handler, Consumer<A> consumer)
+    {
+        return ofSucceededVoid(handler, null, consumer);
+    }
+
+    public static <A, B> Handler<AsyncResult<A>> ofSucceededVoid(Handler<AsyncResult<B>> handler, VoidConsumer alwaysDo, Consumer<A> consumer)
     {
         return e -> {
-            always.accept();
+            if (alwaysDo != null) {
+                alwaysDo.accept();
+            }
+
             if (e.failed()) {
                 handler.handle(Future.failedFuture(e.cause()));
                 return;
@@ -48,20 +58,15 @@ public class F
 
     public static <A, B> Handler<AsyncResult<A>> ofSucceeded(Handler<AsyncResult<B>> handler, Function<A, B> consumer)
     {
-        return e -> {
-            if (e.failed()) {
-                handler.handle(Future.failedFuture(e.cause()));
-                return;
-            }
-            B v = consumer.apply(e.result());
-            handler.handle(v == null ? F.succeededFuture() : F.succeededFuture(v));
-        };
+        return ofSucceeded(handler, null, consumer);
     }
 
-    public static <A, B> Handler<AsyncResult<A>> ofSucceeded(Handler<AsyncResult<B>> handler, VoidConsumer always, Function<A, B> consumer)
+    public static <A, B> Handler<AsyncResult<A>> ofSucceeded(Handler<AsyncResult<B>> handler, VoidConsumer alwaysDo, Function<A, B> consumer)
     {
         return e -> {
-            always.accept();
+            if (alwaysDo != null) {
+                alwaysDo.accept();
+            }
             if (e.failed()) {
                 handler.handle(Future.failedFuture(e.cause()));
                 return;

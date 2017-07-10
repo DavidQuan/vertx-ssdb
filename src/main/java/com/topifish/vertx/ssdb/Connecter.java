@@ -7,6 +7,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 
+import java.util.Queue;
+
 /**
  * @author FanYongquan
  * @copyright (c) topifish game studio, create on 2017/7/7.
@@ -19,7 +21,7 @@ class Connecter
 
     private NetClient netClient;
 
-    private Connection conn;
+    private Connection connection;
 
     Connecter(Vertx vertx, SSDBOptions options)
     {
@@ -29,8 +31,8 @@ class Connecter
 
     void tryGetConnection(Handler<AsyncResult<Connection>> handler)
     {
-        if (conn != null && conn.isAlive()) {
-            handler.handle(F.succeededFuture(conn));
+        if (connection != null && connection.isAlive()) {
+            handler.handle(F.succeededFuture(connection));
             return;
         }
 
@@ -38,18 +40,24 @@ class Connecter
             netClient = vertx.createNetClient();
         }
 
-        netClient.connect(options.getPort(), options.getHost(), F.ofSucceeded(handler, netSocket -> {
-            conn = new Connection(vertx, options, netSocket);
+        netClient.connect(options.getPort(), options.getHost(), F.ofSucceededVoid(handler, netSocket -> {
+            connection = new Connection(vertx, options, netSocket);
             netSocket.closeHandler(event -> {
-                conn.clearPendings();
-                Connecter.this.conn = null;
+                connection.clearPendings();
+                Connecter.this.connection = null;
             })
                      .exceptionHandler(exception -> {
-                         conn.clearPendings();
-                         Connecter.this.conn = null;
+                         connection.clearPendings();
+                         Connecter.this.connection = null;
                          netSocket.close();
                      });
-            return conn;
+            String auth = options.getAuth();
+            if (auth == null) {
+                handler.handle(F.succeededFuture(connection));
+                return;
+            }
+
+            connection.execute("auth", new Object[]{auth}, F.ofSucceeded(handler, (Queue<byte[]> queue) -> connection));
         }));
     }
 }

@@ -1,6 +1,7 @@
 package com.topifish.vertx.ssdb;
 
 import com.topifish.vertx.ssdb.exceptions.ResetException;
+import com.topifish.vertx.ssdb.models.ReplyStatus;
 import com.topifish.vertx.ssdb.models.SSDBOptions;
 import com.topifish.vertx.ssdb.util.F;
 import io.vertx.core.AsyncResult;
@@ -48,14 +49,6 @@ class Connection
         return netSocket != null;
     }
 
-    public void write(Buffer buffer, Handler<AsyncResult<Queue<byte[]>>> handler)
-    {
-        assert handler != null;
-
-        pendings.add(handler);
-        netSocket.write(buffer);
-    }
-
     public void clearPendings()
     {
         Handler<AsyncResult<Queue<byte[]>>> pending;
@@ -63,6 +56,47 @@ class Connection
         while ((pending = pendings.poll()) != null) {
             pending.handle(F.failedFuture(reset));
         }
+    }
+
+    private void append(Buffer buffer, String str)
+    {
+        byte[] bytes = str.getBytes();
+        buffer.appendString(Integer.toString(bytes.length))
+              .appendByte(CTRL_N)
+              .appendBytes(bytes)
+              .appendByte(CTRL_N);
+    }
+
+    private Buffer binaryCommand(String key, Object[] params)
+    {
+        Buffer buffer = Buffer.buffer(128);
+        append(buffer, key);
+        if (params != null) {
+            for (Object str : params) {
+                append(buffer, str.toString());
+            }
+        }
+        buffer.appendByte(CTRL_N);
+        return buffer;
+    }
+
+    public void execute(String key, Object[] params, Handler<AsyncResult<Queue<byte[]>>> handler)
+    {
+        pendings.add(F.ofSucceededVoid(handler, (Queue<byte[]> queue) -> {
+                    ReplyStatus replyStatus = ReplyStatus.parseFrom(new String(queue.poll()));
+                    switch (replyStatus) {
+                        case Ok:
+                        case NotFound:
+                            handler.handle(F.succeededFuture(queue));
+                            break;
+                        default:
+                            handler.handle(F.failedFuture(queue.isEmpty() ? replyStatus.toString() : new String(queue.poll())));
+                            break;
+                    }
+                }
+        ));
+
+        netSocket.write(binaryCommand(key, params));
     }
 
     private void onReceive(Buffer buffer)

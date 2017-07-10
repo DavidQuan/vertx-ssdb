@@ -31,7 +31,9 @@ public interface SSDBClient
         return new SSDBClientImpl(vertx, options);
     }
 
-    void dbsize(Handler<AsyncResult<Integer>> handler);
+    void close(Handler<AsyncResult<Void>> handler);
+
+    void dbsize(Handler<AsyncResult<Long>> handler);
 
     default void flushdb(Handler<AsyncResult<Void>> handler)
     {
@@ -146,16 +148,16 @@ public interface SSDBClient
 
     void hdel(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler);
 
-    void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Integer>> handler);
+    void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler);
 
-    default void hincr(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler)
+    default void hincr(String hashKey, String fieldKey, Handler<AsyncResult<Long>> handler)
     {
         hincr(hashKey, fieldKey, 1, handler);
     }
 
     void hexists(String hashKey, String fieldKey, Handler<AsyncResult<Boolean>> handler);
 
-    void hsize(String hashKey, Handler<AsyncResult<Integer>> handler);
+    void hsize(String hashKey, Handler<AsyncResult<Long>> handler);
 
     void hlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
@@ -194,7 +196,7 @@ public interface SSDBClient
         hrscan(hashKey, "", "", limit, handler);
     }
 
-    void hclear(String hashKey, Handler<AsyncResult<Integer>> handler);
+    void hclear(String hashKey, Handler<AsyncResult<Long>> handler);
 
     void multiHset(String hashKey, Map<String, String> fields, Handler<AsyncResult<Void>> handler);
 
@@ -210,7 +212,7 @@ public interface SSDBClient
 
     void zincr(String setKey, String itemKey, int incrValue, Handler<AsyncResult<Integer>> handler);
 
-    void zsize(String setKey, Handler<AsyncResult<Integer>> handler);
+    void zsize(String setKey, Handler<AsyncResult<Long>> handler);
 
     void zlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
@@ -242,13 +244,13 @@ public interface SSDBClient
 
     void zrrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void zclear(String setKey, Handler<AsyncResult<Integer>> handler);
+    void zclear(String setKey, Handler<AsyncResult<Long>> handler);
 
-    void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler);
+    void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
     void zsum(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
-    void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler);
+    void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
     void zremRangeByRank(String setKey, int rankStart, int rankEnd, Handler<AsyncResult<Integer>> handler);
 
@@ -268,9 +270,9 @@ public interface SSDBClient
 
     void qpushFront(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler);
 
-    void qpushBack(String listKey, String item, Handler<AsyncResult<Integer>> handler);
+    void qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler);
 
-    void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler);
+    void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler);
 
     void qpopFront(String listKey, int size, Handler<AsyncResult<List<String>>> handler);
 
@@ -286,9 +288,14 @@ public interface SSDBClient
         qpopBack(listKey, 1, handler);
     }
 
-    default void qpush(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler)
+    default void qpush(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
     {
         qpushBack(listKey, items, handler);
+    }
+
+    default void qpush(String listKey, String item, Handler<AsyncResult<Long>> handler)
+    {
+        qpushBack(listKey, item, handler);
     }
 
     default void qpop(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
@@ -305,7 +312,7 @@ public interface SSDBClient
 
     void qback(String listKey, Handler<AsyncResult<String>> handler);
 
-    void qsize(String listKey, Handler<AsyncResult<Integer>> handler);
+    void qsize(String listKey, Handler<AsyncResult<Long>> handler);
 
     void qclear(String listKey, Handler<AsyncResult<Void>> handler);
 
@@ -329,4 +336,6 @@ public interface SSDBClient
     }
 
     void qrlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+
+    SSDBClient setAutoClose(boolean autoClose);
 }

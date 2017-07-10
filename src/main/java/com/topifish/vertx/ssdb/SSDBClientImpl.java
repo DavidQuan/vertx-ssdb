@@ -17,15 +17,20 @@ import java.util.Map;
  */
 public class SSDBClientImpl extends CompositeClient
 {
-    SSDBClientImpl(Vertx vertx, SSDBOptions options)
+    protected SSDBClientImpl(Vertx vertx, SSDBOptions options)
     {
         super(vertx, options);
     }
 
-    @Override
-    public void dbsize(Handler<AsyncResult<Integer>> handler)
+    public void close(Handler<AsyncResult<Void>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "dbsize");
+        sendCommand(F.ofSucceeded(handler, this::voidValue), "quit");
+    }
+
+    @Override
+    public void dbsize(Handler<AsyncResult<Long>> handler)
+    {
+        sendCommand(F.ofSucceeded(handler, this::longValue), "dbsize");
     }
 
     @Override
@@ -237,9 +242,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Integer>> handler)
+    public void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "hincr", hashKey, fieldKey, incrValue);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "hincr", hashKey, fieldKey, incrValue);
     }
 
     @Override
@@ -249,9 +254,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void hsize(String hashKey, Handler<AsyncResult<Integer>> handler)
+    public void hsize(String hashKey, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "hsize", hashKey);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "hsize", hashKey);
     }
 
     @Override
@@ -291,9 +296,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void hclear(String hashKey, Handler<AsyncResult<Integer>> handler)
+    public void hclear(String hashKey, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "hclear", hashKey);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "hclear", hashKey);
     }
 
     @Override
@@ -339,9 +344,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void zsize(String setKey, Handler<AsyncResult<Integer>> handler)
+    public void zsize(String setKey, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "zsize", setKey);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "zsize", setKey);
     }
 
     @Override
@@ -405,15 +410,15 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void zclear(String setKey, Handler<AsyncResult<Integer>> handler)
+    public void zclear(String setKey, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "zclear", setKey);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "zclear", setKey);
     }
 
     @Override
-    public void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler)
+    public void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "zcount", setKey, scoreStart, scoreEnd);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "zcount", setKey, scoreStart, scoreEnd);
     }
 
     @Override
@@ -423,9 +428,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler)
+    public void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "zavg", setKey, scoreStart, scoreEnd);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "zavg", setKey, scoreStart, scoreEnd);
     }
 
     @Override
@@ -483,15 +488,15 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void qpushBack(String listKey, String item, Handler<AsyncResult<Integer>> handler)
+    public void qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "qpush_back", listKey, item);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "qpush_back", listKey, item);
     }
 
     @Override
-    public void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler)
+    public void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "qpush_back", listKey, items.toArray());
+        sendCommand(F.ofSucceeded(handler, this::longValue), "qpush_back", listKey, items.toArray());
     }
 
     @Override
@@ -519,9 +524,9 @@ public class SSDBClientImpl extends CompositeClient
     }
 
     @Override
-    public void qsize(String listKey, Handler<AsyncResult<Integer>> handler)
+    public void qsize(String listKey, Handler<AsyncResult<Long>> handler)
     {
-        sendCommand(F.ofSucceeded(handler, this::intValue), "qsize", listKey);
+        sendCommand(F.ofSucceeded(handler, this::longValue), "qsize", listKey);
     }
 
     @Override

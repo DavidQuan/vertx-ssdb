@@ -1,14 +1,13 @@
 package com.topifish.vertx.ssdb;
 
+import com.topifish.vertx.ssdb.exceptions.SSDBClosedException;
 import com.topifish.vertx.ssdb.models.PairStringInt;
 import com.topifish.vertx.ssdb.models.PairStringString;
-import com.topifish.vertx.ssdb.models.ReplyStatus;
 import com.topifish.vertx.ssdb.models.SSDBOptions;
 import com.topifish.vertx.ssdb.util.F;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,57 +23,54 @@ import java.util.Queue;
  */
 abstract class CompositeClient implements SSDBClient
 {
-    private final Connecter ssdb;
-
-    protected CompositeClient(Vertx vertx, SSDBOptions options)
+    enum Status
     {
-        this.ssdb = new Connecter(vertx, options);
+        Normal,
+        Once,
+        Unusable
     }
 
-    private void append(Buffer buffer, String str)
+    private final Vertx vertx;
+
+    private final Connecter connecter;
+
+    private Status status = Status.Once;
+
+    CompositeClient(Vertx vertx, SSDBOptions options)
     {
-        byte[] bytes = str.getBytes();
-        buffer.appendString(Integer.toString(bytes.length))
-              .appendByte(CTRL_N)
-              .appendBytes(bytes)
-              .appendByte(CTRL_N);
+        this.vertx = vertx;
+        this.connecter = new Connecter(vertx, options);
     }
 
-    protected void sendCommand(Handler<AsyncResult<Queue<byte[]>>> handler, String key, Object... cmdVs)
+    @Override
+    public SSDBClient setAutoClose(boolean autoClose)
     {
-        ssdb.tryGetConnection(event -> {
-            if (event.failed()) {
-                handler.handle(F.failedFuture(event.cause()));
-                return;
-            }
-            Buffer buffer = Buffer.buffer(128);
-            append(buffer, key);
-            for (Object str : cmdVs) {
-                append(buffer, str.toString());
-            }
-            buffer.appendByte(CTRL_N);
-            event.result()
-                 .write(buffer, event1 -> {
-                     if (event1.failed()) {
-                         handler.handle(F.failedFuture(event1.cause()));
-                         return;
-                     }
-                     Queue<byte[]> result = event1.result();
-                     ReplyStatus replyStatus = ReplyStatus.parseFrom(new String(result.poll()));
-                     switch (replyStatus) {
-                         case Ok:
-                         case NotFound:
-                             handler.handle(event1);
-                             break;
-                         default:
-                             handler.handle(F.failedFuture(new String(result.poll())));
-                             break;
-                     }
-                 });
-        });
+        if (autoClose) {
+            status = Status.Once;
+        } else {
+            status = Status.Normal;
+        }
+        return this;
     }
 
-    protected List<String> listValue(Queue<byte[]> queue)
+    void sendCommand(Handler<AsyncResult<Queue<byte[]>>> handler, String key, Object... params)
+    {
+        switch (status) {
+            case Normal:
+                connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> conn.execute(key, params, handler)));
+                break;
+            case Once:
+                connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> conn.execute(key, params, F.ofSucceeded(handler, () -> {
+                    status = Status.Unusable;
+                    vertx.runOnContext(event -> close(F.succeededFuture()));
+                }, queue -> queue))));
+                break;
+            case Unusable:
+                throw new SSDBClosedException();
+        }
+    }
+
+    List<String> listValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return Collections.emptyList();
@@ -88,7 +84,7 @@ abstract class CompositeClient implements SSDBClient
         return v;
     }
 
-    protected Map<String, String> mapValue(Queue<byte[]> queue)
+    Map<String, String> mapValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return Collections.emptyMap();
@@ -103,7 +99,7 @@ abstract class CompositeClient implements SSDBClient
         return v;
     }
 
-    protected List<PairStringString> listPairValue(Queue<byte[]> queue)
+    List<PairStringString> listPairValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return Collections.emptyList();
@@ -118,7 +114,7 @@ abstract class CompositeClient implements SSDBClient
         return v;
     }
 
-    protected List<PairStringInt> listPairStringIntValue(Queue<byte[]> queue)
+    List<PairStringInt> listPairStringIntValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return Collections.emptyList();
@@ -133,7 +129,7 @@ abstract class CompositeClient implements SSDBClient
         return v;
     }
 
-    protected Integer intValue(Queue<byte[]> queue)
+    Integer intValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return INT0;
@@ -142,7 +138,7 @@ abstract class CompositeClient implements SSDBClient
         return new Integer(new String(queue.poll()));
     }
 
-    protected Integer intValue_1(Queue<byte[]> queue)
+    Integer intValue_1(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return INT_1;
@@ -151,7 +147,7 @@ abstract class CompositeClient implements SSDBClient
         return new Integer(new String(queue.poll()));
     }
 
-    protected Long longValue(Queue<byte[]> queue)
+    Long longValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return LONG0;
@@ -160,7 +156,7 @@ abstract class CompositeClient implements SSDBClient
         return new Long(new String(queue.poll()));
     }
 
-    protected String stringValue(Queue<byte[]> queue)
+    String stringValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return null;
@@ -170,12 +166,12 @@ abstract class CompositeClient implements SSDBClient
     }
 
     @SuppressWarnings("unused")
-    protected Void voidValue(Queue<byte[]> ignore)
+    Void voidValue(Queue<byte[]> ignore)
     {
         return null;
     }
 
-    protected Boolean booleanValue(Queue<byte[]> queue)
+    Boolean booleanValue(Queue<byte[]> queue)
     {
         if (queue.isEmpty()) {
             return Boolean.FALSE;
@@ -185,7 +181,7 @@ abstract class CompositeClient implements SSDBClient
         return bytes[0] == '1' ? Boolean.TRUE : Boolean.FALSE;
     }
 
-    protected <K, V> Object[] toArray(Map<K, V> keyValues)
+    <K, V> Object[] toArray(Map<K, V> keyValues)
     {
         int idx = 0;
         Object[] v = new Object[keyValues.size() << 1];
