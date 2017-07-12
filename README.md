@@ -1,2 +1,3 @@
-# vertx-ssdb
-Vert.x SSDB driver
+# Vert.x SSDB Client
+  ===================
+
