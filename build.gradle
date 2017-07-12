@@ -1,8 +1,9 @@
 group 'com.topifish'
-version '0.1-SNAPSHOT'
+version '0.2.0-SNAPSHOT'
 description 'Vert.x SSDB Client'
 
 apply plugin: 'java'
+apply plugin: 'maven'
 
 def vertx_version = '3.4.2'
 def junit_version = '4.12'
@@ -24,4 +25,20 @@ dependencies {
             "io.vertx:vertx-unit:${vertx_version}",
             "junit:junit:${junit_version}"
     )
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: NEXUS_PUBLISH_REPO) {
+                authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+            }
+
+            pom {
+                version = "$project.version"
+                artifactId = "$artifactId"
+                groupId = "$project.group"
+            }
+        }
+    }
 }
