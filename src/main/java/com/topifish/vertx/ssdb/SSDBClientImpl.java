@@ -20,6 +20,7 @@ public class SSDBClientImpl extends CompositeClient
     protected SSDBClientImpl(Vertx vertx, SSDBOptions options)
     {
         super(vertx, options);
+        setAutoClose(false);
     }
 
     @Override
