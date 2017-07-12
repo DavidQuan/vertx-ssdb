@@ -18,7 +18,7 @@ public interface SSDBClient
 {
     byte CTRL_N = (byte) '\n';
 
-    byte CTRL_R = (byte) '\r';
+    byte CTRL_R = (byte) '\n';
 
     Integer INT0 = 0;
 
@@ -33,309 +33,315 @@ public interface SSDBClient
 
     void close(Handler<AsyncResult<Void>> handler);
 
-    void dbsize(Handler<AsyncResult<Long>> handler);
+    SSDBClient ping(Handler<AsyncResult<Void>> handler);
 
-    default void flushdb(Handler<AsyncResult<Void>> handler)
+    SSDBClient dbsize(Handler<AsyncResult<Long>> handler);
+
+    default SSDBClient flushdb(Handler<AsyncResult<Void>> handler)
     {
         throw new UnsupportedOperationException();
     }
 
-    default void info(Handler<AsyncResult<Map<String, String>>> handler)
+    SSDBClient info(String cmd, Handler<AsyncResult<Map<String, String>>> handler);
+
+    default SSDBClient info(Handler<AsyncResult<Map<String, String>>> handler)
     {
-        info(null, handler);
+        return info(null, handler);
     }
 
-    void info(String cmd, Handler<AsyncResult<Map<String, String>>> handler);
+    SSDBClient auth(String authKey, Handler<AsyncResult<Boolean>> handler);
 
-    void auth(String authKey, Handler<AsyncResult<Boolean>> handler);
+    SSDBClient listAllowIp(Handler<AsyncResult<List<String>>> handler);
 
-    void listAllowIp(Handler<AsyncResult<List<String>>> handler);
+    SSDBClient addAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler);
 
-    void addAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler);
+    SSDBClient delAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler);
 
-    void delAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler);
+    SSDBClient listDenyIp(Handler<AsyncResult<List<String>>> handler);
 
-    void listDenyIp(Handler<AsyncResult<List<String>>> handler);
+    SSDBClient addDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler);
 
-    void addDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler);
+    SSDBClient delDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler);
 
-    void delDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler);
+    SSDBClient set(String key, String value, Handler<AsyncResult<Void>> handler);
 
-    void set(String key, String value, Handler<AsyncResult<Void>> handler);
+    SSDBClient setx(String key, String value, int secondsTTL, Handler<AsyncResult<Void>> handler);
 
-    void setx(String key, String value, int secondsTTL, Handler<AsyncResult<Void>> handler);
+    SSDBClient setnx(String key, String value, Handler<AsyncResult<Integer>> handler);
 
-    void setnx(String key, String value, Handler<AsyncResult<Integer>> handler);
+    SSDBClient expire(String key, int secondsTTL, Handler<AsyncResult<Integer>> handler);
 
-    void expire(String key, int secondsTTL, Handler<AsyncResult<Integer>> handler);
+    SSDBClient ttl(String key, Handler<AsyncResult<Integer>> handler);
 
-    void ttl(String key, Handler<AsyncResult<Integer>> handler);
+    SSDBClient get(String key, Handler<AsyncResult<String>> handler);
 
-    void get(String key, Handler<AsyncResult<String>> handler);
+    SSDBClient getset(String key, String value, Handler<AsyncResult<String>> handler);
 
-    void getset(String key, String value, Handler<AsyncResult<String>> handler);
+    SSDBClient del(String key, Handler<AsyncResult<Void>> handler);
 
-    void del(String key, Handler<AsyncResult<Void>> handler);
+    SSDBClient incr(String key, int incrValue, Handler<AsyncResult<Integer>> handler);
 
-    void incr(String key, int incrValue, Handler<AsyncResult<Integer>> handler);
-
-    default void incr(String key, Handler<AsyncResult<Integer>> handler)
+    default SSDBClient incr(String key, Handler<AsyncResult<Integer>> handler)
     {
-        incr(key, 1, handler);
+        return incr(key, 1, handler);
     }
 
-    void exists(String key, Handler<AsyncResult<Boolean>> handler);
+    SSDBClient exists(String key, Handler<AsyncResult<Boolean>> handler);
 
-    void getbit(String key, int offset, Handler<AsyncResult<Integer>> handler);
+    SSDBClient getbit(String key, int offset, Handler<AsyncResult<Integer>> handler);
 
-    void setbit(String key, int offset, int bitValue, Handler<AsyncResult<Integer>> handler);
+    SSDBClient setbit(String key, int offset, int bitValue, Handler<AsyncResult<Integer>> handler);
 
-    void bitcount(String key, int start, int end, Handler<AsyncResult<Integer>> handler);
+    SSDBClient bitcount(String key, int start, int end, Handler<AsyncResult<Integer>> handler);
 
-    default void bitcount(String key, Handler<AsyncResult<Integer>> handler)
+    default SSDBClient bitcount(String key, Handler<AsyncResult<Integer>> handler)
     {
-        bitcount(key, 0, -1, handler);
+        return bitcount(key, 0, -1, handler);
     }
 
-    default void bitcount(String key, int start, Handler<AsyncResult<Integer>> handler)
+    default SSDBClient bitcount(String key, int start, Handler<AsyncResult<Integer>> handler)
     {
-        bitcount(key, start, -1, handler);
+        return bitcount(key, start, -1, handler);
     }
 
-    void countbit(String key, int start, int end, Handler<AsyncResult<Integer>> handler);
+    SSDBClient countbit(String key, int start, int end, Handler<AsyncResult<Integer>> handler);
 
-    void substr(String key, int start, int size, Handler<AsyncResult<String>> handler);
+    SSDBClient substr(String key, int start, int size, Handler<AsyncResult<String>> handler);
 
-    void strlen(String key, Handler<AsyncResult<Integer>> handler);
+    SSDBClient strlen(String key, Handler<AsyncResult<Integer>> handler);
 
-    void keys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient keys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void keys(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient keys(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        keys("", "", limit, handler);
+        return keys("", "", limit, handler);
     }
 
-    void rkeys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient rkeys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void rkeys(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient rkeys(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        rkeys("", "", limit, handler);
+        return rkeys("", "", limit, handler);
     }
 
-    void scan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
+    SSDBClient scan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
 
-    default void scan(int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    default SSDBClient scan(int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
-        scan("", "", limit, handler);
+        return scan("", "", limit, handler);
     }
 
-    void rscan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
+    SSDBClient rscan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
 
-    default void rscan(int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    default SSDBClient rscan(int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
-        rscan("", "", limit, handler);
+        return rscan("", "", limit, handler);
     }
 
-    void multiSet(Map<String, String> keyValues, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiSet(Map<String, String> keyValues, Handler<AsyncResult<Void>> handler);
 
-    void multiGet(List<String> keys, Handler<AsyncResult<Map<String, String>>> handler);
+    SSDBClient multiGet(List<String> keys, Handler<AsyncResult<Map<String, String>>> handler);
 
-    void multiDel(List<String> keys, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiDel(List<String> keys, Handler<AsyncResult<Void>> handler);
 
-    void hset(String hashKey, String fieldKey, String fieldValue, Handler<AsyncResult<Integer>> handler);
+    SSDBClient hset(String hashKey, String fieldKey, String fieldValue, Handler<AsyncResult<Integer>> handler);
 
-    void hget(String hashKey, String fieldKey, Handler<AsyncResult<String>> handler);
+    SSDBClient hget(String hashKey, String fieldKey, Handler<AsyncResult<String>> handler);
 
-    void hdel(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler);
+    SSDBClient hdel(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler);
 
-    void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler);
+    SSDBClient hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler);
 
-    default void hincr(String hashKey, String fieldKey, Handler<AsyncResult<Long>> handler)
+    default SSDBClient hincr(String hashKey, String fieldKey, Handler<AsyncResult<Long>> handler)
     {
-        hincr(hashKey, fieldKey, 1, handler);
+        return hincr(hashKey, fieldKey, 1, handler);
     }
 
-    void hexists(String hashKey, String fieldKey, Handler<AsyncResult<Boolean>> handler);
+    SSDBClient hexists(String hashKey, String fieldKey, Handler<AsyncResult<Boolean>> handler);
 
-    void hsize(String hashKey, Handler<AsyncResult<Long>> handler);
+    SSDBClient hsize(String hashKey, Handler<AsyncResult<Long>> handler);
 
-    void hlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient hlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void hlist(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient hlist(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        hlist("", "", limit, handler);
+        return hlist("", "", limit, handler);
     }
 
-    void hrlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient hrlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void hrlist(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient hrlist(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        hrlist("", "", limit, handler);
+        return hrlist("", "", limit, handler);
     }
 
-    void hkeys(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient hkeys(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void hkeys(String hashKey, int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient hkeys(String hashKey, int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        hkeys(hashKey, "", "", limit, handler);
+        return hkeys(hashKey, "", "", limit, handler);
     }
 
-    void hgetall(String hashKey, Handler<AsyncResult<Map<String, String>>> handler);
+    SSDBClient hgetall(String hashKey, Handler<AsyncResult<Map<String, String>>> handler);
 
-    void hscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<Map<String, String>>> handler);
+    SSDBClient hscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<Map<String, String>>> handler);
 
-    default void hscan(String hashKey, int limit, Handler<AsyncResult<Map<String, String>>> handler)
+    default SSDBClient hscan(String hashKey, int limit, Handler<AsyncResult<Map<String, String>>> handler)
     {
-        hscan(hashKey, "", "", limit, handler);
+        return hscan(hashKey, "", "", limit, handler);
     }
 
-    void hrscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
+    SSDBClient hrscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler);
 
-    default void hrscan(String hashKey, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    default SSDBClient hrscan(String hashKey, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
-        hrscan(hashKey, "", "", limit, handler);
+        return hrscan(hashKey, "", "", limit, handler);
     }
 
-    void hclear(String hashKey, Handler<AsyncResult<Long>> handler);
+    SSDBClient hclear(String hashKey, Handler<AsyncResult<Long>> handler);
 
-    void multiHset(String hashKey, Map<String, String> fields, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiHset(String hashKey, Map<String, String> fields, Handler<AsyncResult<Void>> handler);
 
-    void multiHget(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Map<String, String>>> handler);
+    SSDBClient multiHget(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Map<String, String>>> handler);
 
-    void multiHdel(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiHdel(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Void>> handler);
 
-    void zset(String setKey, String itemKey, int score, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zset(String setKey, String itemKey, int score, Handler<AsyncResult<Integer>> handler);
 
-    void zget(String setKey, String itemKey, Handler<AsyncResult<String>> handler);
+    SSDBClient zget(String setKey, String itemKey, Handler<AsyncResult<String>> handler);
 
-    void zdel(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zdel(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
 
-    void zincr(String setKey, String itemKey, int incrValue, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zincr(String setKey, String itemKey, int incrValue, Handler<AsyncResult<Integer>> handler);
 
-    void zsize(String setKey, Handler<AsyncResult<Long>> handler);
+    SSDBClient zsize(String setKey, Handler<AsyncResult<Long>> handler);
 
-    void zlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient zlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void zlist(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient zlist(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        zlist("", "", limit, handler);
+        return zlist("", "", limit, handler);
     }
 
-    void zrlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient zrlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void zrlist(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient zrlist(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        zrlist("", "", limit, handler);
+        return zrlist("", "", limit, handler);
     }
 
-    void zexists(String setKey, String itemKey, Handler<AsyncResult<Boolean>> handler);
+    SSDBClient zexists(String setKey, String itemKey, Handler<AsyncResult<Boolean>> handler);
 
-    void zkeys(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient zkeys(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    void zscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient zscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    void zrscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient zrscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    void zrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
 
-    void zrrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zrrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler);
 
-    void zrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
+    SSDBClient zrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void zrrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
+    SSDBClient zrrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void zclear(String setKey, Handler<AsyncResult<Long>> handler);
+    SSDBClient zclear(String setKey, Handler<AsyncResult<Long>> handler);
 
-    void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
+    SSDBClient zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
-    void zsum(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
+    SSDBClient zsum(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
-    void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
+    SSDBClient zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler);
 
-    void zremRangeByRank(String setKey, int rankStart, int rankEnd, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zremRangeByRank(String setKey, int rankStart, int rankEnd, Handler<AsyncResult<Integer>> handler);
 
-    void zremRangeByScore(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler);
+    SSDBClient zremRangeByScore(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler);
 
-    void zpopFront(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
+    SSDBClient zpopFront(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void zpopBack(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
+    SSDBClient zpopBack(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void multiZset(String setKey, Map<String, Integer> items, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiZset(String setKey, Map<String, Integer> items, Handler<AsyncResult<Void>> handler);
 
-    void multiZget(String setKey, List<String> itemKeys, Handler<AsyncResult<List<PairStringInt>>> handler);
+    SSDBClient multiZget(String setKey, List<String> itemKeys, Handler<AsyncResult<List<PairStringInt>>> handler);
 
-    void multiZdel(String setKey, List<String> itemKeys, Handler<AsyncResult<Void>> handler);
+    SSDBClient multiZdel(String setKey, List<String> itemKeys, Handler<AsyncResult<Void>> handler);
 
-    void qpushFront(String listKey, String item, Handler<AsyncResult<Integer>> handler);
+    SSDBClient qpushFront(String listKey, String item, Handler<AsyncResult<Integer>> handler);
 
-    void qpushFront(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler);
+    SSDBClient qpushFront(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler);
 
-    void qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler);
+    SSDBClient qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler);
 
-    void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler);
+    SSDBClient qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler);
 
-    void qpopFront(String listKey, int size, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qpopFront(String listKey, int size, Handler<AsyncResult<List<String>>> handler);
 
-    default void qpopFront(String listKey, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient qpopFront(String listKey, Handler<AsyncResult<List<String>>> handler)
     {
-        qpopFront(listKey, 1, handler);
+        return qpopFront(listKey, 1, handler);
     }
 
-    void qpopBack(String listKey, int size, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qpopBack(String listKey, int size, Handler<AsyncResult<List<String>>> handler);
 
-    default void qpopBack(String listKey, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient qpopBack(String listKey, Handler<AsyncResult<List<String>>> handler)
     {
-        qpopBack(listKey, 1, handler);
+        return qpopBack(listKey, 1, handler);
     }
 
-    default void qpush(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
+    default SSDBClient qpush(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
     {
-        qpushBack(listKey, items, handler);
+        return qpushBack(listKey, items, handler);
     }
 
-    default void qpush(String listKey, String item, Handler<AsyncResult<Long>> handler)
+    default SSDBClient qpush(String listKey, String item, Handler<AsyncResult<Long>> handler)
     {
-        qpushBack(listKey, item, handler);
+        return qpushBack(listKey, item, handler);
     }
 
-    default void qpop(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient qpop(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
     {
-        qpopFront(listKey, size, handler);
+        return qpopFront(listKey, size, handler);
     }
 
-    default void qpop(String listKey, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient qpop(String listKey, Handler<AsyncResult<List<String>>> handler)
     {
-        qpop(listKey, 1, handler);
+        return qpop(listKey, 1, handler);
     }
 
-    void qfront(String listKey, Handler<AsyncResult<String>> handler);
+    SSDBClient qfront(String listKey, Handler<AsyncResult<String>> handler);
 
-    void qback(String listKey, Handler<AsyncResult<String>> handler);
+    SSDBClient qback(String listKey, Handler<AsyncResult<String>> handler);
 
-    void qsize(String listKey, Handler<AsyncResult<Long>> handler);
+    SSDBClient qsize(String listKey, Handler<AsyncResult<Long>> handler);
 
-    void qclear(String listKey, Handler<AsyncResult<Void>> handler);
+    SSDBClient qclear(String listKey, Handler<AsyncResult<Void>> handler);
 
-    void qget(String listKey, int index, Handler<AsyncResult<String>> handler);
+    SSDBClient qget(String listKey, int index, Handler<AsyncResult<String>> handler);
 
-    void qset(String listKey, int index, String newValue, Handler<AsyncResult<Void>> handler);
+    SSDBClient qset(String listKey, int index, String newValue, Handler<AsyncResult<Void>> handler);
 
-    void qrange(String listKey, int offset, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qrange(String listKey, int offset, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    void qslice(String listKey, int begin, int end, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qslice(String listKey, int begin, int end, Handler<AsyncResult<List<String>>> handler);
 
-    void qtrimFront(String listKey, int size, Handler<AsyncResult<Integer>> handler);
+    SSDBClient qtrimFront(String listKey, int size, Handler<AsyncResult<Integer>> handler);
 
-    void qtrimBack(String listKey, int size, Handler<AsyncResult<Integer>> handler);
+    SSDBClient qtrimBack(String listKey, int size, Handler<AsyncResult<Integer>> handler);
 
-    void qlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
-    default void qlist(int limit, Handler<AsyncResult<List<String>>> handler)
+    default SSDBClient qlist(int limit, Handler<AsyncResult<List<String>>> handler)
     {
-        qlist("", "", limit, handler);
+        return qlist("", "", limit, handler);
     }
 
-    void qrlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
+    SSDBClient qrlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler);
 
     SSDBClient setAutoClose(boolean autoClose);
+
+    SSDBClient beginBatch();
+
+    void endBatch(Handler<AsyncResult<Void>> handler);
 }

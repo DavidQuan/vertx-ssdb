@@ -5,6 +5,7 @@ description 'Vert.x SSDB Client'
 apply plugin: 'java'
 
 def vertx_version = '3.4.2'
+def junit_version = '4.12'
 
 tasks.withType(JavaCompile) {
     it.sourceCompatibility = JavaVersion.VERSION_1_8 as String
@@ -17,14 +18,10 @@ repositories {
 }
 
 dependencies {
-    compile ("io.vertx:vertx-core:${vertx_version}")
-}
+    compile("io.vertx:vertx-core:${vertx_version}")
 
-sourceSets.main.java {
-    srcDirs += 'src/test/java'
-}
-
-task testVerticle(type: JavaExec, dependsOn: 'classes') {
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'ssdb.TestVerticle'
+    testCompile(
+            "io.vertx:vertx-unit:${vertx_version}",
+            "junit:junit:${junit_version}"
+    )
 }

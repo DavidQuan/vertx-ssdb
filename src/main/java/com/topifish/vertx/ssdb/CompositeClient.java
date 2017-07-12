@@ -36,6 +36,8 @@ abstract class CompositeClient implements SSDBClient
 
     private Status status = Status.Once;
 
+    private List<BatchCommand> batches;
+
     CompositeClient(Vertx vertx, SSDBOptions options)
     {
         this.vertx = vertx;
@@ -55,6 +57,11 @@ abstract class CompositeClient implements SSDBClient
 
     void sendCommand(Handler<AsyncResult<Queue<byte[]>>> handler, String key, Object... params)
     {
+        if (batches != null) {
+            batches.add(new BatchCommand(key, params, handler));
+            return;
+        }
+
         switch (status) {
             case Normal:
                 connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> conn.execute(key, params, handler)));
@@ -62,11 +69,41 @@ abstract class CompositeClient implements SSDBClient
             case Once:
                 connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> conn.execute(key, params, F.ofSucceeded(handler, () -> {
                     status = Status.Unusable;
-                    vertx.runOnContext(event -> close(F.succeededFuture()));
+                    vertx.runOnContext(event -> close(F.noneHandle()));
                 }, queue -> queue))));
                 break;
             case Unusable:
-                throw new SSDBClosedException();
+                handler.handle(F.failedFuture(new SSDBClosedException()));
+                break;
+        }
+    }
+
+    void initBatch()
+    {
+        batches = new ArrayList<>(5);
+    }
+
+    void sendCommands(Handler<AsyncResult<Void>> handler)
+    {
+        switch (status) {
+            case Normal:
+                connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> {
+                    conn.execute(batches, handler);
+                    batches = null;
+                }));
+                break;
+            case Once:
+                connecter.tryGetConnection(F.ofSucceededVoid(handler, conn -> {
+                    conn.execute(batches, F.ofSucceeded(handler, () -> {
+                        status = Status.Unusable;
+                        vertx.runOnContext(event -> close(F.noneHandle()));
+                    }, queue -> queue));
+                    batches = null;
+                }));
+                break;
+            case Unusable:
+                handler.handle(F.failedFuture(new SSDBClosedException()));
+                break;
         }
     }
 

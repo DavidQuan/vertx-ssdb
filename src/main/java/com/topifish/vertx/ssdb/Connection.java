@@ -12,6 +12,7 @@ import io.vertx.core.net.NetSocket;
 
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import static com.topifish.vertx.ssdb.SSDBClient.CTRL_N;
@@ -67,9 +68,8 @@ class Connection
               .appendByte(CTRL_N);
     }
 
-    private Buffer binaryCommand(String key, Object[] params)
+    private Buffer binaryCommand(Buffer buffer, String key, Object[] params)
     {
-        Buffer buffer = Buffer.buffer(128);
         append(buffer, key);
         if (params != null) {
             for (Object str : params) {
@@ -82,21 +82,51 @@ class Connection
 
     public void execute(String key, Object[] params, Handler<AsyncResult<Queue<byte[]>>> handler)
     {
-        pendings.add(F.ofSucceededVoid(handler, (Queue<byte[]> queue) -> {
-                    ReplyStatus replyStatus = ReplyStatus.parseFrom(new String(queue.poll()));
-                    switch (replyStatus) {
-                        case Ok:
-                        case NotFound:
-                            handler.handle(F.succeededFuture(queue));
-                            break;
-                        default:
-                            handler.handle(F.failedFuture(queue.isEmpty() ? replyStatus.toString() : new String(queue.poll())));
-                            break;
-                    }
-                }
-        ));
+        pendings.add(handlePending(handler));
 
-        netSocket.write(binaryCommand(key, params));
+        netSocket.write(binaryCommand(Buffer.buffer(128), key, params));
+    }
+
+    public void execute(List<BatchCommand> batches, Handler<AsyncResult<Void>> handler)
+    {
+        int size = batches.size() - 1;
+        Buffer buffer = Buffer.buffer();
+        for (int i = 0; i < size; ++i) {
+            BatchCommand batchCommand = batches.get(i);
+            binaryCommand(buffer, batchCommand.getKey(), batchCommand.getParams());
+            pendings.add(handlePending(batchCommand.getHandler()));
+        }
+
+        BatchCommand batchCommand = batches.get(size);
+        binaryCommand(buffer, batchCommand.getKey(), batchCommand.getParams());
+        pendings.add(handlePending(event -> {
+            batchCommand.getHandler()
+                        .handle(event);
+            vertx.runOnContext(ev -> handler.handle(F.succeededFuture()));
+        }));
+
+        netSocket.write(buffer);
+    }
+
+    private Handler<AsyncResult<Queue<byte[]>>> handlePending(Handler<AsyncResult<Queue<byte[]>>> handler)
+    {
+        return event -> {
+            if (event.failed()) {
+                handler.handle(event);
+                return;
+            }
+            Queue<byte[]> queue = event.result();
+            ReplyStatus replyStatus = ReplyStatus.parseFrom(new String(queue.poll()));
+            switch (replyStatus) {
+                case Ok:
+                case NotFound:
+                    handler.handle(event);
+                    break;
+                default:
+                    handler.handle(F.failedFuture(queue.isEmpty() ? replyStatus.toString() : new String(queue.poll())));
+                    break;
+            }
+        };
     }
 
     private void onReceive(Buffer buffer)
@@ -111,7 +141,7 @@ class Connection
             recvBuffer = newBuffer;
         }
         size += buffer.length();
-        tryExecPending();
+        expandPending();
     }
 
     private int search(byte[] data, int size, int start, byte c)
@@ -124,47 +154,77 @@ class Connection
         return -1;
     }
 
-    private void tryExecPending()
+    private int search(byte[] data, int size, int start, byte[] bytes)
     {
-        Queue<byte[]> v = new LinkedList<>();
-        int idx = 0;
-
-        while (true) {
-            int pos = search(recvBuffer, size, idx, CTRL_N);
-            if (pos == -1) {
-                return;
-            }
-
-            if (pos == idx || (pos == idx + 1 && recvBuffer[idx] == CTRL_R)) {
-                if (v.isEmpty()) {
-                    ++idx;
-                    continue;
-                } else {
+        int maxSize = size - bytes.length;
+        boolean found;
+        for (int i = start; i <= maxSize; ++i) {
+            found = true;
+            for (int j = 0; j < bytes.length; ++j) {
+                if (data[i + j] != bytes[j]) {
+                    found = false;
                     break;
                 }
             }
-
-            String str = new String(recvBuffer, idx, pos - idx);
-            int len = Integer.parseInt(str);
-            idx = pos + 1;
-            if (idx + len >= size) {
-                break;
+            if (found) {
+                return i;
             }
-            byte[] data = Arrays.copyOfRange(recvBuffer, idx, idx + len);
-            idx += len + 1;
-            v.add(data);
         }
+        return -1;
+    }
 
-        if (v.isEmpty()) {
-            return;
+    private void expandPending()
+    {
+        int idx = 0, subIdx;
+
+        try {
+            while (size > idx) {
+                Queue<byte[]> v = new LinkedList<>();
+                subIdx = idx;
+                while (true) {
+                    int nIdx = search(recvBuffer, size, subIdx, CTRL_N);
+                    if (nIdx == -1) {
+                        return;
+                    }
+
+                    if (recvBuffer[nIdx - 1] == CTRL_R) {
+                        subIdx = nIdx + 1;
+                        break;
+                    }
+
+                    if (nIdx + 1 >= size) {
+                        return;
+                    }
+
+                    if (recvBuffer[nIdx + 1] == CTRL_N) {
+                        subIdx = nIdx + 2;
+                        break;
+                    }
+
+                    int length = Integer.parseInt(new String(recvBuffer, subIdx, nIdx - subIdx));
+
+                    subIdx = nIdx + 1;
+
+                    if (subIdx + length + 1 >= size) {
+                        return;
+                    }
+
+                    byte[] data = Arrays.copyOfRange(recvBuffer, subIdx, subIdx + length);
+                    subIdx += length + 1;
+                    v.add(data);
+                }
+                idx = subIdx;
+                Handler<AsyncResult<Queue<byte[]>>> penging = pendings.poll();
+                vertx.runOnContext(event -> penging.handle(F.succeededFuture(v)));
+            }
+        } finally {
+            if (idx > 0) {
+                if (size > idx) {
+                    System.arraycopy(recvBuffer, idx, recvBuffer, 0, size -= idx);
+                } else {
+                    size = 0;
+                }
+            }
         }
-
-        if (size > idx) {
-            System.arraycopy(recvBuffer, idx, recvBuffer, 0, size - idx);
-            size -= idx;
-        }
-
-        Handler<AsyncResult<Queue<byte[]>>> penging = pendings.poll();
-        vertx.runOnContext(event -> penging.handle(F.succeededFuture(v)));
     }
 }

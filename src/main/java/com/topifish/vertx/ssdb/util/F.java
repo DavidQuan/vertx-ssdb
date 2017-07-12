@@ -14,8 +14,6 @@ import java.util.function.Function;
  */
 public class F
 {
-    public final static Function<Void, Void> VOID_NULL = aVoid -> null;
-
     public static <T> Future<T> succeededFuture()
     {
         return Future.succeededFuture();
@@ -23,7 +21,7 @@ public class F
 
     public static <T> Future<T> succeededFuture(T result)
     {
-        return result == null ? F.succeededFuture() : Future.succeededFuture(result);
+        return result == null ? succeededFuture() : Future.succeededFuture(result);
     }
 
     public static <T> Future<T> failedFuture(String string)
@@ -49,7 +47,7 @@ public class F
             }
 
             if (e.failed()) {
-                handler.handle(Future.failedFuture(e.cause()));
+                handler.handle(failedFuture(e.cause()));
                 return;
             }
             consumer.accept(e.result());
@@ -68,11 +66,17 @@ public class F
                 alwaysDo.accept();
             }
             if (e.failed()) {
-                handler.handle(Future.failedFuture(e.cause()));
+                handler.handle(failedFuture(e.cause()));
                 return;
             }
             B v = consumer.apply(e.result());
-            handler.handle(v == null ? F.succeededFuture() : F.succeededFuture(v));
+            handler.handle(v == null ? succeededFuture() : succeededFuture(v));
+        };
+    }
+
+    public static <T> Handler<AsyncResult<T>> noneHandle()
+    {
+        return ev -> {
         };
     }
 }

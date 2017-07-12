@@ -1,7 +1,5 @@
-package com.topifish.vertx.ssdb.pool;
+package com.topifish.vertx.ssdb;
 
-import com.topifish.vertx.ssdb.SSDBClient;
-import com.topifish.vertx.ssdb.SSDBClientImpl;
 import com.topifish.vertx.ssdb.exceptions.ResetException;
 import com.topifish.vertx.ssdb.models.SSDBOptions;
 import com.topifish.vertx.ssdb.util.F;
@@ -67,13 +65,14 @@ public class SSDBPool
                 public void close(Handler<AsyncResult<Void>> handler)
                 {
                     if (shutdown) {
-                        super.close(F.ofSucceeded(handler, () -> {
+                        super.close(event -> {
                             if (++shutdownCount >= count) {
                                 if (SSDBPool.this.closeHandler != null) {
-                                    vertx.runOnContext(event -> SSDBPool.this.closeHandler.handle(F.succeededFuture()));
+                                    vertx.runOnContext(ev -> SSDBPool.this.closeHandler.handle(F.succeededFuture()));
                                 }
                             }
-                        }, F.VOID_NULL));
+                            handler.handle(event);
+                        });
                         return;
                     }
 
@@ -92,7 +91,7 @@ public class SSDBPool
             client = queue.poll();
         }
 
-        handler.handle(F.succeededFuture(client));
+        handler.handle(F.succeededFuture(client.setAutoClose(true)));
     }
 
     public void close(Handler<AsyncResult<Void>> handler)
@@ -107,10 +106,10 @@ public class SSDBPool
             first.handle(F.failedFuture(exception));
         }
 
-
         SSDBClient client;
         while ((client = queue.poll()) != null) {
-            client.close(F::succeededFuture);
+            client.setAutoClose(false)
+                  .close(F::succeededFuture);
         }
     }
 }

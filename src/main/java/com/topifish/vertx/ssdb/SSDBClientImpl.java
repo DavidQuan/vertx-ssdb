@@ -22,564 +22,676 @@ public class SSDBClientImpl extends CompositeClient
         super(vertx, options);
     }
 
+    @Override
+    public SSDBClient ping(Handler<AsyncResult<Void>> handler)
+    {
+        sendCommand(F.ofSucceeded(handler, this::voidValue), "ping");
+        return this;
+    }
+
     public void close(Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "quit");
     }
 
     @Override
-    public void dbsize(Handler<AsyncResult<Long>> handler)
+    public SSDBClient dbsize(Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "dbsize");
+        return this;
     }
 
     @Override
-    public void info(String cmd, Handler<AsyncResult<Map<String, String>>> handler)
+    public SSDBClient info(String cmd, Handler<AsyncResult<Map<String, String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, queue -> {
             // pop ssdb-server
             queue.poll();
             return mapValue(queue);
         }), "info", cmd);
+        return this;
     }
 
     @Override
-    public void auth(String authKey, Handler<AsyncResult<Boolean>> handler)
+    public SSDBClient auth(String authKey, Handler<AsyncResult<Boolean>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::booleanValue), "auth", authKey);
+        return this;
     }
 
     @Override
-    public void listAllowIp(Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient listAllowIp(Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "list_allow_ip");
+        return this;
     }
 
     @Override
-    public void addAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler)
+    public SSDBClient addAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "add_allow_ip", prefixIp);
+        return this;
     }
 
     @Override
-    public void delAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler)
+    public SSDBClient delAllowIp(String prefixIp, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "del_allow_ip", prefixIp);
+        return this;
     }
 
     @Override
-    public void listDenyIp(Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient listDenyIp(Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "list_deny_ip");
+        return this;
     }
 
     @Override
-    public void addDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler)
+    public SSDBClient addDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "add_deny_ip", prefixIp);
+        return this;
     }
 
     @Override
-    public void delDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler)
+    public SSDBClient delDenyIp(String prefixIp, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "del_deny_ip", prefixIp);
+        return this;
     }
 
     @Override
-    public void set(String key, String value, Handler<AsyncResult<Void>> handler)
+    public SSDBClient set(String key, String value, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "set", key, value);
+        return this;
     }
 
     @Override
-    public void setx(String key, String value, int secondsTTL, Handler<AsyncResult<Void>> handler)
+    public SSDBClient setx(String key, String value, int secondsTTL, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "setx", key, value, secondsTTL);
+        return this;
     }
 
     @Override
-    public void setnx(String key, String value, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient setnx(String key, String value, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "setnx", key, value);
+        return this;
     }
 
     @Override
-    public void expire(String key, int secondsTTL, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient expire(String key, int secondsTTL, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "expire", key, secondsTTL);
+        return this;
     }
 
     @Override
-    public void ttl(String key, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient ttl(String key, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "ttl", key);
+        return this;
     }
 
     @Override
-    public void get(String key, Handler<AsyncResult<String>> handler)
+    public SSDBClient get(String key, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "get", key);
+        return this;
     }
 
     @Override
-    public void getset(String key, String value, Handler<AsyncResult<String>> handler)
+    public SSDBClient getset(String key, String value, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "getset", key, value);
+        return this;
     }
 
     @Override
-    public void del(String key, Handler<AsyncResult<Void>> handler)
+    public SSDBClient del(String key, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "del", key);
+        return this;
     }
 
     @Override
-    public void incr(String key, int incrValue, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient incr(String key, int incrValue, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "incr", key, incrValue);
+        return this;
     }
 
     @Override
-    public void exists(String key, Handler<AsyncResult<Boolean>> handler)
+    public SSDBClient exists(String key, Handler<AsyncResult<Boolean>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::booleanValue), "exists", key);
+        return this;
     }
 
     @Override
-    public void getbit(String key, int offset, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient getbit(String key, int offset, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "getbit", key, offset);
+        return this;
     }
 
     @Override
-    public void setbit(String key, int offset, int bitValue, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient setbit(String key, int offset, int bitValue, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "setbit", key, offset, bitValue);
+        return this;
     }
 
     @Override
-    public void bitcount(String key, int start, int end, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient bitcount(String key, int start, int end, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "bitcount", key, start, end);
+        return this;
     }
 
     @Override
-    public void countbit(String key, int start, int end, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient countbit(String key, int start, int end, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "countbit", key, start, end);
+        return this;
     }
 
     @Override
-    public void substr(String key, int start, int size, Handler<AsyncResult<String>> handler)
+    public SSDBClient substr(String key, int start, int size, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "substr", key, start, size);
+        return this;
     }
 
     @Override
-    public void strlen(String key, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient strlen(String key, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "strlen", key);
+        return this;
     }
 
     @Override
-    public void keys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient keys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "keys", keyStart, keyEnd, limit);
+        return this;
     }
 
     @Override
-    public void rkeys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient rkeys(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "rkeys", keyStart, keyEnd, limit);
+        return this;
     }
 
     @Override
-    public void scan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    public SSDBClient scan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairValue), "scan", keyStart, keyEnd, limit);
+        return this;
     }
 
     @Override
-    public void rscan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    public SSDBClient rscan(String keyStart, String keyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairValue), "rscan", keyStart, keyEnd, limit);
+        return this;
     }
 
     @Override
-    public void multiSet(Map<String, String> keyValues, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiSet(Map<String, String> keyValues, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_set", toArray(keyValues));
+        return this;
     }
 
     @Override
-    public void multiGet(List<String> keys, Handler<AsyncResult<Map<String, String>>> handler)
+    public SSDBClient multiGet(List<String> keys, Handler<AsyncResult<Map<String, String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::mapValue), "multi_get", keys.toArray());
+        return this;
     }
 
     @Override
-    public void multiDel(List<String> keys, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiDel(List<String> keys, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_del", keys.toArray());
+        return this;
     }
 
     @Override
-    public void hset(String hashKey, String fieldKey, String fieldValue, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient hset(String hashKey, String fieldKey, String fieldValue, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "hset", hashKey, fieldKey, fieldValue);
+        return this;
     }
 
     @Override
-    public void hget(String hashKey, String fieldKey, Handler<AsyncResult<String>> handler)
+    public SSDBClient hget(String hashKey, String fieldKey, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "hget", hashKey, fieldKey);
+        return this;
     }
 
     @Override
-    public void hdel(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient hdel(String hashKey, String fieldKey, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "hdel", hashKey, fieldKey);
+        return this;
     }
 
     @Override
-    public void hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler)
+    public SSDBClient hincr(String hashKey, String fieldKey, int incrValue, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "hincr", hashKey, fieldKey, incrValue);
+        return this;
     }
 
     @Override
-    public void hexists(String hashKey, String fieldKey, Handler<AsyncResult<Boolean>> handler)
+    public SSDBClient hexists(String hashKey, String fieldKey, Handler<AsyncResult<Boolean>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::booleanValue), "hexists", hashKey, fieldKey);
+        return this;
     }
 
     @Override
-    public void hsize(String hashKey, Handler<AsyncResult<Long>> handler)
+    public SSDBClient hsize(String hashKey, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "hsize", hashKey);
+        return this;
     }
 
     @Override
-    public void hlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient hlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "hlist", hashKeyStart, hashKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void hrlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient hrlist(String hashKeyStart, String hashKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "hrlist", hashKeyStart, hashKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void hkeys(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient hkeys(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "hrlist", hashKey, fieldKeyStart, fieldKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void hgetall(String hashKey, Handler<AsyncResult<Map<String, String>>> handler)
+    public SSDBClient hgetall(String hashKey, Handler<AsyncResult<Map<String, String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::mapValue), "hgetall", hashKey);
+        return this;
     }
 
     @Override
-    public void hscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<Map<String, String>>> handler)
+    public SSDBClient hscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<Map<String, String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::mapValue), "hscan", hashKey, fieldKeyStart, fieldKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void hrscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
+    public SSDBClient hrscan(String hashKey, String fieldKeyStart, String fieldKeyEnd, int limit, Handler<AsyncResult<List<PairStringString>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairValue), "hscan", hashKey, fieldKeyStart, fieldKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void hclear(String hashKey, Handler<AsyncResult<Long>> handler)
+    public SSDBClient hclear(String hashKey, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "hclear", hashKey);
+        return this;
     }
 
     @Override
-    public void multiHset(String hashKey, Map<String, String> fields, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiHset(String hashKey, Map<String, String> fields, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_hset", hashKey, toArray(fields));
+        return this;
     }
 
     @Override
-    public void multiHget(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Map<String, String>>> handler)
+    public SSDBClient multiHget(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Map<String, String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::mapValue), "multi_hget", hashKey, fieldKeys.toArray());
+        return this;
     }
 
     @Override
-    public void multiHdel(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiHdel(String hashKey, List<String> fieldKeys, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_hdel", hashKey, fieldKeys.toArray());
+        return this;
     }
 
     @Override
-    public void zset(String setKey, String itemKey, int score, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zset(String setKey, String itemKey, int score, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "zset", setKey, itemKey, score);
+        return this;
     }
 
     @Override
-    public void zget(String setKey, String itemKey, Handler<AsyncResult<String>> handler)
+    public SSDBClient zget(String setKey, String itemKey, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "zget", setKey, itemKey);
+        return this;
     }
 
     @Override
-    public void zdel(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zdel(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "zdel", setKey, itemKey);
+        return this;
     }
 
     @Override
-    public void zincr(String setKey, String itemKey, int incrValue, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zincr(String setKey, String itemKey, int incrValue, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "zincr", setKey, itemKey, incrValue);
+        return this;
     }
 
     @Override
-    public void zsize(String setKey, Handler<AsyncResult<Long>> handler)
+    public SSDBClient zsize(String setKey, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "zsize", setKey);
+        return this;
     }
 
     @Override
-    public void zlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient zlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "zlist", setKeyStart, setKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void zrlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient zrlist(String setKeyStart, String setKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "zrlist", setKeyStart, setKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void zexists(String setKey, String itemKey, Handler<AsyncResult<Boolean>> handler)
+    public SSDBClient zexists(String setKey, String itemKey, Handler<AsyncResult<Boolean>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::booleanValue), "zexists", setKey, itemKey);
+        return this;
     }
 
     @Override
-    public void zkeys(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient zkeys(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "zkeys", setKey, itemKeyStart, scoreStart, scoreEnd, limit);
+        return this;
     }
 
     @Override
-    public void zscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient zscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "zscan", setKey, itemKeyStart, scoreStart, scoreEnd, limit);
+        return this;
     }
 
     @Override
-    public void zrscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient zrscan(String setKey, String itemKeyStart, int scoreStart, int scoreEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "zrscan", setKey, itemKeyStart, scoreStart, scoreEnd, limit);
+        return this;
     }
 
     @Override
-    public void zrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue_1), "zrank", setKey, itemKey);
+        return this;
     }
 
     @Override
-    public void zrrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zrrank(String setKey, String itemKey, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue_1), "zrrank", setKey, itemKey);
+        return this;
     }
 
     @Override
-    public void zrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
+    public SSDBClient zrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairStringIntValue), "zrange", setKey, offset, limit);
+        return this;
     }
 
     @Override
-    public void zrrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
+    public SSDBClient zrrange(String setKey, int offset, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairStringIntValue), "zrrange", setKey, offset, limit);
+        return this;
     }
 
     @Override
-    public void zclear(String setKey, Handler<AsyncResult<Long>> handler)
+    public SSDBClient zclear(String setKey, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "zclear", setKey);
+        return this;
     }
 
     @Override
-    public void zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
+    public SSDBClient zcount(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "zcount", setKey, scoreStart, scoreEnd);
+        return this;
     }
 
     @Override
-    public void zsum(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
+    public SSDBClient zsum(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "zsum", setKey, scoreStart, scoreEnd);
+        return this;
     }
 
     @Override
-    public void zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
+    public SSDBClient zavg(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "zavg", setKey, scoreStart, scoreEnd);
+        return this;
     }
 
     @Override
-    public void zremRangeByRank(String setKey, int rankStart, int rankEnd, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zremRangeByRank(String setKey, int rankStart, int rankEnd, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "zremrangebyrank", setKey, rankStart, rankEnd);
+        return this;
     }
 
     @Override
-    public void zremRangeByScore(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient zremRangeByScore(String setKey, int scoreStart, int scoreEnd, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "zremrangebyscore", setKey, scoreStart, scoreEnd);
+        return this;
     }
 
     @Override
-    public void zpopFront(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
+    public SSDBClient zpopFront(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairStringIntValue), "zpop_front", setKey, limit);
+        return this;
     }
 
     @Override
-    public void zpopBack(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
+    public SSDBClient zpopBack(String setKey, int limit, Handler<AsyncResult<List<PairStringInt>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairStringIntValue), "zpop_back", setKey, limit);
+        return this;
     }
 
     @Override
-    public void multiZset(String setKey, Map<String, Integer> items, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiZset(String setKey, Map<String, Integer> items, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_zset", setKey, toArray(items));
+        return this;
     }
 
     @Override
-    public void multiZget(String setKey, List<String> itemKeys, Handler<AsyncResult<List<PairStringInt>>> handler)
+    public SSDBClient multiZget(String setKey, List<String> itemKeys, Handler<AsyncResult<List<PairStringInt>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listPairStringIntValue), "multi_zget", setKey, itemKeys.toArray());
+        return this;
     }
 
     @Override
-    public void multiZdel(String setKey, List<String> itemKeys, Handler<AsyncResult<Void>> handler)
+    public SSDBClient multiZdel(String setKey, List<String> itemKeys, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "multi_zdel", setKey, itemKeys.toArray());
+        return this;
     }
 
     @Override
-    public void qpushFront(String listKey, String item, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient qpushFront(String listKey, String item, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "qpush_front", listKey, item);
+        return this;
     }
 
     @Override
-    public void qpushFront(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient qpushFront(String listKey, List<String> items, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "qpush_front", listKey, items.toArray());
+        return this;
     }
 
     @Override
-    public void qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler)
+    public SSDBClient qpushBack(String listKey, String item, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "qpush_back", listKey, item);
+        return this;
     }
 
     @Override
-    public void qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
+    public SSDBClient qpushBack(String listKey, List<String> items, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "qpush_back", listKey, items.toArray());
+        return this;
     }
 
     @Override
-    public void qpopFront(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qpopFront(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qpop_front", listKey, size);
+        return this;
     }
 
     @Override
-    public void qpopBack(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qpopBack(String listKey, int size, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qpop_back", listKey, size);
+        return this;
     }
 
     @Override
-    public void qfront(String listKey, Handler<AsyncResult<String>> handler)
+    public SSDBClient qfront(String listKey, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "qfront", listKey);
+        return this;
     }
 
     @Override
-    public void qback(String listKey, Handler<AsyncResult<String>> handler)
+    public SSDBClient qback(String listKey, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "qback", listKey);
+        return this;
     }
 
     @Override
-    public void qsize(String listKey, Handler<AsyncResult<Long>> handler)
+    public SSDBClient qsize(String listKey, Handler<AsyncResult<Long>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::longValue), "qsize", listKey);
+        return this;
     }
 
     @Override
-    public void qclear(String listKey, Handler<AsyncResult<Void>> handler)
+    public SSDBClient qclear(String listKey, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "qclear", listKey);
+        return this;
     }
 
     @Override
-    public void qget(String listKey, int index, Handler<AsyncResult<String>> handler)
+    public SSDBClient qget(String listKey, int index, Handler<AsyncResult<String>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::stringValue), "qget", listKey, index);
+        return this;
     }
 
     @Override
-    public void qset(String listKey, int index, String newValue, Handler<AsyncResult<Void>> handler)
+    public SSDBClient qset(String listKey, int index, String newValue, Handler<AsyncResult<Void>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::voidValue), "qset", listKey, index, newValue);
+        return this;
     }
 
     @Override
-    public void qrange(String listKey, int offset, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qrange(String listKey, int offset, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qrange", listKey, offset, limit);
+        return this;
     }
 
     @Override
-    public void qslice(String listKey, int begin, int end, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qslice(String listKey, int begin, int end, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qslice", listKey, begin, end);
+        return this;
     }
 
     @Override
-    public void qtrimFront(String listKey, int size, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient qtrimFront(String listKey, int size, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "qtrim_front", listKey, size);
+        return this;
     }
 
     @Override
-    public void qtrimBack(String listKey, int size, Handler<AsyncResult<Integer>> handler)
+    public SSDBClient qtrimBack(String listKey, int size, Handler<AsyncResult<Integer>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::intValue), "qtrim_back", listKey, size);
+        return this;
     }
 
     @Override
-    public void qlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qlist", listKeyStart, listKeyEnd, limit);
+        return this;
     }
 
     @Override
-    public void qrlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
+    public SSDBClient qrlist(String listKeyStart, String listKeyEnd, int limit, Handler<AsyncResult<List<String>>> handler)
     {
         sendCommand(F.ofSucceeded(handler, this::listValue), "qrlist", listKeyStart, listKeyEnd, limit);
+        return this;
+    }
+
+    @Override
+    public SSDBClient beginBatch()
+    {
+        initBatch();
+        return this;
+    }
+
+    @Override
+    public void endBatch(Handler<AsyncResult<Void>> handler)
+    {
+        sendCommands(handler);
     }
 }
