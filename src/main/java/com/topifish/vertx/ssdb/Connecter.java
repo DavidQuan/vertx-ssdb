@@ -1,5 +1,6 @@
 package com.topifish.vertx.ssdb;
 
+import com.topifish.vertx.ssdb.exceptions.SSDBClosedException;
 import com.topifish.vertx.ssdb.models.SSDBOptions;
 import com.topifish.vertx.ssdb.util.F;
 import io.vertx.core.AsyncResult;
@@ -23,6 +24,8 @@ class Connecter
 
     private Connection connection;
 
+    private boolean closed;
+
     Connecter(Vertx vertx, SSDBOptions options)
     {
         this.vertx = vertx;
@@ -31,6 +34,11 @@ class Connecter
 
     void tryGetConnection(Handler<AsyncResult<Connection>> handler)
     {
+        if (closed) {
+            handler.handle(F.failedFuture(new SSDBClosedException()));
+            return;
+        }
+
         if (connection != null && connection.isAlive()) {
             handler.handle(F.succeededFuture(connection));
             return;
@@ -43,8 +51,11 @@ class Connecter
         netClient.connect(options.getPort(), options.getHost(), F.ofSucceededVoid(handler, netSocket -> {
             connection = new Connection(vertx, options, netSocket);
             netSocket.closeHandler(event -> {
-                connection.clearPendings();
-                Connecter.this.connection = null;
+                if (!closed) {
+                    closed = true;
+                    connection.clearPendings();
+                    Connecter.this.connection = null;
+                }
             })
                      .exceptionHandler(exception -> {
                          connection.clearPendings();

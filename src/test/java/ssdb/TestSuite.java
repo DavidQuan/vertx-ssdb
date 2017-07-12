@@ -71,6 +71,7 @@ public class TestSuite
         Async async = testContext.async();
         pool.getClient(event -> {
             SSDBClient client = event.result();
+            client.setAutoClose(false);
             client.dbsize(event1 -> {
                 testContext.assertTrue(event1.succeeded());
                 printf("dbsize : %d", event1.result());

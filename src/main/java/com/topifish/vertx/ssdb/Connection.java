@@ -175,12 +175,11 @@ class Connection
 
     private void expandPending()
     {
-        int idx = 0, subIdx;
+        int idx = 0, subIdx = idx;
 
         try {
             while (size > idx) {
                 Queue<byte[]> v = new LinkedList<>();
-                subIdx = idx;
                 while (true) {
                     int nIdx = search(recvBuffer, size, subIdx, CTRL_N);
                     if (nIdx == -1) {

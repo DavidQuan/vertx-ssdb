@@ -109,7 +109,7 @@ public class SSDBPool
         SSDBClient client;
         while ((client = queue.poll()) != null) {
             client.setAutoClose(false)
-                  .close(F::succeededFuture);
+                  .close(F.noneHandle());
         }
     }
 }
